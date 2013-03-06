@@ -1,0 +1,1 @@
+[{rabbit, [{cluster_nodes, ['rabbit@el5a', 'rabbit@el5b']}]}].
