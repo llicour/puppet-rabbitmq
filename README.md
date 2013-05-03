@@ -2,12 +2,6 @@ Providers and types in lib/ from
 
 https://github.com/puppetlabs/puppetlabs-rabbitmq
 
-The module requires that you comment out in /etc/sudoers :
-
-```
-# Default requiretty
-```
-
 You also need to generate your own SSL keys
 
 Put them in :

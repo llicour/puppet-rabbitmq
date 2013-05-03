@@ -14,6 +14,15 @@ class rabbitmq( $up = true ) {
 # www.mentby.com/Group/rabbitmq-discuss/issues-on-rhel-62-with-rabbitmq-282.html
 # Requires that you comment out in /etc/sudoers : Default requiretty
 
+
+    file { '/etc/sudoers.d/rabbitmq' :
+        ensure  => present,
+        source  => 'puppet:///modules/rabbitmq/rabbitmq.sudoers',
+        owner   => 'root',
+        group   => 'root',
+        mode    => '0440',
+    }
+
     file { '/etc/init.d/rabbitmq-server' :
         ensure  => present,
         source  => 'puppet:///modules/rabbitmq/rabbitmq-server',
@@ -104,6 +113,7 @@ class rabbitmq( $up = true ) {
         require   => [  Package[ 'rabbitmq-server' ],
                         File[ '.erlang.cookie', 'server_key.pem',
                           'rabbitmq.config', '/etc/init.d/rabbitmq-server',
+                          '/etc/sudoers.d/rabbitmq',
                           '/var/run/rabbitmq/' ],
                         #Rabbitmq_plugin[ 'rabbitmq_management' ], ],
                         Exec[ 'enable rabbitmq_management' ], ],
