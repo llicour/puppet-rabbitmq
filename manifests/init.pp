@@ -14,7 +14,6 @@ class rabbitmq( $up = true ) {
 # www.mentby.com/Group/rabbitmq-discuss/issues-on-rhel-62-with-rabbitmq-282.html
 # Requires that you comment out in /etc/sudoers : Default requiretty
 
-
     file { '/etc/sudoers.d/rabbitmq' :
         ensure  => present,
         source  => 'puppet:///modules/rabbitmq/rabbitmq.sudoers',
@@ -119,7 +118,7 @@ class rabbitmq( $up = true ) {
                         Exec[ 'enable rabbitmq_management' ], ],
     }
 
-    include firewall
+    include myfirewall
 
     firewall { '100 RabbitMQ' :
           chain  => 'INPUT',
