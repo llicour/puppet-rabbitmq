@@ -1,6 +1,7 @@
 class rabbitmq( $up = true ) {
 
     include yum::epel
+    include yum::kermit
 
     package { 'rabbitmq-server' :
         ensure  => '2.8.7-1',
