@@ -1,6 +1,7 @@
 class rabbitmq( $up = true ) {
 
     include yum::epel
+    include yum::kermit
 
     package { 'rabbitmq-server' :
         ensure  => '2.8.7-1',
@@ -52,39 +53,53 @@ class rabbitmq( $up = true ) {
 
     file { '/etc/rabbitmq/ssl' :
         ensure  => directory,
+        owner   => 'rabbitmq',
+        group   => 'rabbitmq',
         mode    => '0755',
         require => Package[ 'rabbitmq-server' ],
     }
 
     file { 'rabbitmq.config' :
         ensure  => present,
+        owner   => 'rabbitmq',
+        group   => 'rabbitmq',
+        mode    => '0644',
         path    => '/etc/rabbitmq/rabbitmq.config',
         source  => 'puppet:///modules/rabbitmq/rabbitmq.config',
         require => Package[ 'rabbitmq-server' ],
+        notify  => Service['rabbitmq-server'],
     }
 
-    # You can generate the CA and the key with helper scripts from
-    # git://github.com/joemiller/joemiller.me-intro-to-sensu.git
-
-    file { 'cacert.pem' :
+    # SSL certificates generated from autopki
+    file { '/etc/rabbitmq/ssl/cacert.pem' :
         ensure  => present,
         path    => '/etc/rabbitmq/ssl/cacert.pem',
-        source  => 'puppet:///modules/rabbitmq/ssl/cacert.pem',
+        owner   => 'rabbitmq',
+        group   => 'rabbitmq',
+        mode    => '0644',
+        source  => "puppet:///private/rabbitmq/cacert.pem",
         require => File[ '/etc/rabbitmq/ssl' ],
+        notify  => Service['rabbitmq-server'],
     }
-
-    file { 'server_cert.pem' :
+    file { '/etc/rabbitmq/ssl/server_cert.pem' :
         ensure  => present,
         path    => '/etc/rabbitmq/ssl/server_cert.pem',
-        source  => 'puppet:///modules/rabbitmq/ssl/server_cert.pem',
-        require => File[ 'cacert.pem' ],
+        owner   => 'rabbitmq',
+        group   => 'rabbitmq',
+        mode    => '0644',
+        source  => "puppet:///private/rabbitmq/server_cert.pem",
+        require => File[ '/etc/rabbitmq/ssl' ],
+        notify  => Service['rabbitmq-server'],
     }
-
-    file { 'server_key.pem' :
+    file { '/etc/rabbitmq/ssl/server_key.pem' :
         ensure  => present,
         path    => '/etc/rabbitmq/ssl/server_key.pem',
-        source  => 'puppet:///modules/rabbitmq/ssl/server_key.pem',
-        require => File[ 'server_cert.pem' ],
+        owner   => 'rabbitmq',
+        group   => 'rabbitmq',
+        mode    => '0400',
+        source  => "puppet:///private/rabbitmq/server_key.pem",
+        require => File[ '/etc/rabbitmq/ssl' ],
+        notify  => Service['rabbitmq-server'],
     }
 
     # Problem : HOME must be set
@@ -111,15 +126,17 @@ class rabbitmq( $up = true ) {
                             default => false },
         hasstatus => false,
         require   => [  Package[ 'rabbitmq-server' ],
-                        File[ '.erlang.cookie', 'server_key.pem',
-                          'rabbitmq.config', '/etc/init.d/rabbitmq-server',
+                        File[ '.erlang.cookie',
+                          '/etc/rabbitmq/ssl/server_cert.pem',
+                          'rabbitmq.config',
+                          '/etc/init.d/rabbitmq-server',
                           '/etc/sudoers.d/rabbitmq',
                           '/var/run/rabbitmq/' ],
                         #Rabbitmq_plugin[ 'rabbitmq_management' ], ],
                         Exec[ 'enable rabbitmq_management' ], ],
     }
 
-    include firewall
+    include myfirewall
 
     firewall { '100 RabbitMQ' :
           chain  => 'INPUT',

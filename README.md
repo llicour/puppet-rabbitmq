@@ -4,7 +4,7 @@ https://github.com/puppetlabs/puppetlabs-rabbitmq
 
 You also need to generate your own SSL keys
 
-Put them in :
+Put them in private/<nodename>/rabbitmq on  puppet fileserver:
 
 ```
 files/ssl/cacert.pem
@@ -23,4 +23,7 @@ cd joemiller.me-intro-to-sensu/
 ./ssl_certs.sh generate
 ```
 
+or use autopki
+
+git clone git://github.com/llicour/autopki
 
